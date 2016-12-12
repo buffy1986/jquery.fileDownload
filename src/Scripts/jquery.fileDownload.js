@@ -139,7 +139,11 @@ $.extend({
             //Note that some browsers will POST the string htmlentity-encoded whilst others will decode it before POSTing.
             //It is recommended that on the server, htmlentity decoding is done irrespective.
             //
-            encodeHTMLEntities: true
+            encodeHTMLEntities: true,
+		
+	    //Se añade el parametro para incluir los datos mapeados en los objetos en formato objeto.subobjecto.subobjeto = valor en lugar de 
+            //objeto[subobjecto][subobjeto] = valor
+            encodeEntitiesWithDots: true
 
         }, options);
 
@@ -311,6 +315,12 @@ $.extend({
                     kvp = [k, v];
 
                     var key = settings.encodeHTMLEntities ? htmlSpecialCharsEntityEncode(decodeURIComponent(kvp[0])) : decodeURIComponent(kvp[0]);
+			
+		    if(settings.encodeEntitiesWithDots){
+                    	//Se substituyen los corchetes abiertos por . y los cerrados por vacío.
+                    	key = key.replace(/\[/g, '.').replace(/\]/g, '');
+                    }
+			
                     if (key) {
                         var value = settings.encodeHTMLEntities ? htmlSpecialCharsEntityEncode(decodeURIComponent(kvp[1])) : decodeURIComponent(kvp[1]);
                     formInnerHtml += '<input type="hidden" name="' + key + '" value="' + value + '" />';
