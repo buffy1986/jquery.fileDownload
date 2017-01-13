@@ -1,4 +1,5 @@
 /*
+* IMPORATNTE: Referencia al repo: https://github.com/jarey/jquery.fileDownload
 * jQuery File Download Plugin v1.4.5
 *
 * http://www.johnculviner.com
@@ -116,6 +117,11 @@ $.extend({
             //the cookie value for the above name to indicate that a file download has occured
             //
             cookieValue: "true",
+            
+            //
+            //Valor de la cookie cuando ocurre un error en el servidor que debe indicar que se indique el callback de onFail.
+            //
+            cookieErrorValue: "false",
 
             //
             //the cookie path for above name value pair
@@ -139,11 +145,11 @@ $.extend({
             //Note that some browsers will POST the string htmlentity-encoded whilst others will decode it before POSTing.
             //It is recommended that on the server, htmlentity decoding is done irrespective.
             //
-            encodeHTMLEntities: true,
-		
-	    //Se añade el parametro para incluir los datos mapeados en los objetos en formato objeto.subobjecto.subobjeto = valor en lugar de 
+            encodeHTMLEntities: true
+            
+            //Se añade el parametro para incluir los datos mapeados en los objetos en formato objeto.subobjecto.subobjeto = valor en lugar de 
             //objeto[subobjecto][subobjeto] = valor
-            encodeEntitiesWithDots: true
+            //encodeEntitiesWithDots: true
 
         }, options);
 
@@ -315,12 +321,12 @@ $.extend({
                     kvp = [k, v];
 
                     var key = settings.encodeHTMLEntities ? htmlSpecialCharsEntityEncode(decodeURIComponent(kvp[0])) : decodeURIComponent(kvp[0]);
-			
-		    if(settings.encodeEntitiesWithDots){
-                    	//Se substituyen los corchetes abiertos por . y los cerrados por vacío.
-                    	key = key.replace(/\[/g, '.').replace(/\]/g, '');
-                    }
-			
+                    
+//                    if(settings.encodeEntitiesWithDots){
+//                    	//Se substituyen los corchetes abiertos por . y los cerrados por vacío.
+//                    	key = key.replace(/\[/g, '.').replace(/\]/g, '');
+//                    }
+                    
                     if (key) {
                         var value = settings.encodeHTMLEntities ? htmlSpecialCharsEntityEncode(decodeURIComponent(kvp[1])) : decodeURIComponent(kvp[1]);
                     formInnerHtml += '<input type="hidden" name="' + key + '" value="' + value + '" />';
@@ -365,19 +371,29 @@ $.extend({
 
         function checkFileDownloadComplete() {
             //has the cookie been written due to a file download occuring?
-
             var cookieValue = settings.cookieValue;
             if(typeof cookieValue == 'string') {
                 cookieValue = cookieValue.toLowerCase();
             }
+            
+            var cookieErrorValue = settings.cookieErrorValue;
+            if(typeof cookieErrorValue == 'string') {
+            	cookieErrorValue = cookieErrorValue.toLowerCase();
+            }
 
             var lowerCaseCookie = settings.cookieName.toLowerCase() + "=" + cookieValue;
-
+            var lowerCaseCookieError = settings.cookieName.toLowerCase() + "=" + cookieErrorValue;
+            var flag=false;
             if (document.cookie.toLowerCase().indexOf(lowerCaseCookie) > -1) {
-
                 //execute specified callback
                 internalCallbacks.onSuccess(fileUrl);
-
+                flag=true;
+            }else if(document.cookie.toLowerCase().indexOf(lowerCaseCookieError) > -1){          	
+            	internalCallbacks.onFail(fileUrl);
+            	flag=true;
+            }
+            
+            if(flag){
                 //remove cookie
                 var cookieData = settings.cookieName + "=; path=" + settings.cookiePath + "; expires=" + new Date(0).toUTCString() + ";";
                 if (settings.cookieDomain) cookieData += " domain=" + settings.cookieDomain + ";";
